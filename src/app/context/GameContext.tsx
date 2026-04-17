@@ -9,7 +9,7 @@ export interface GameState {
   highScore: number;
   machinesFailed: number;
   isGameRunning: boolean;
-  sleepDeprivation: number; // 0-100, higher = more tired
+  sleepDeprivation: number;
 }
 
 interface GameContextType {
@@ -20,6 +20,7 @@ interface GameContextType {
   updateScore: (points: number) => void;
   returnToMenu: () => void;
   increaseSleepDeprivation: (amount: number) => void;
+  reduceSleepDeprivation: () => void; // 👈 added
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -94,6 +95,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   }, []);
 
+  // 👇 added
+  const reduceSleepDeprivation = useCallback(() => {
+    setGameState(prev => ({
+      ...prev,
+      sleepDeprivation: Math.max(0, prev.sleepDeprivation - 1),
+    }));
+  }, []);
+
   return (
     <GameContext.Provider
       value={{
@@ -104,6 +113,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateScore,
         returnToMenu,
         increaseSleepDeprivation,
+        reduceSleepDeprivation, // 👈 added
       }}
     >
       {children}

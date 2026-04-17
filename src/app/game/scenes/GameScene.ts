@@ -12,9 +12,9 @@ export class GameScene {
   private onGameOver: (score: number, failed: number) => void;
   private onNextDay: () => void;
   private score: number = 0;
-  private machinesFixed: number = 0;
   private dayStartTime: number = 0;
   private dayDuration: number = 30000; // 30 seconds per day
+  private isRunning: boolean = false; // FIX #5: prevent double game loops
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -31,11 +31,18 @@ export class GameScene {
   }
 
   start(day: number, sleepDeprivation: number): void {
+    // FIX #4: enforce cap on sleep deprivation internally
+    this.sleepDeprivation = Math.min(100, sleepDeprivation);
     this.day = day;
-    this.sleepDeprivation = sleepDeprivation;
     this.dayStartTime = Date.now();
     this.setupMachines();
     this.lastUpdateTime = performance.now();
+    
+    // FIX #5: stop any existing loop before starting a new one
+    if (this.isRunning) {
+      this.stop();
+    }
+    this.isRunning = true;
     this.gameLoop();
   }
 
@@ -63,6 +70,9 @@ export class GameScene {
   }
 
   private gameLoop = (): void => {
+    // FIX #5: exit if scene is no longer running
+    if (!this.isRunning) return;
+    
     const currentTime = performance.now();
     const deltaTime = (currentTime - this.lastUpdateTime) / 16.67; // Normalize to 60fps
     this.lastUpdateTime = currentTime;
@@ -90,14 +100,11 @@ export class GameScene {
     // Check if day is complete
     const elapsed = Date.now() - this.dayStartTime;
     if (elapsed >= this.dayDuration) {
+      // FIX #1 & #2: remove internal day progression and bonus scoring
+      // Just stop the scene and notify parent. Parent will decide when to restart
+      // with updated day and sleep deprivation, and can award bonus points itself.
       this.stop();
       this.onNextDay();
-      // Bonus points for surviving the day
-      const dayBonus = this.day * 50;
-      this.onScoreUpdate(dayBonus);
-      setTimeout(() => {
-        this.start(this.day + 1, Math.min(100, this.sleepDeprivation + 15));
-      }, 2000);
     }
   }
 
@@ -117,7 +124,6 @@ export class GameScene {
         const points = machine.fix();
         if (points > 0) {
           this.score += points;
-          this.machinesFixed++;
           this.onScoreUpdate(points);
         }
         break;
@@ -134,10 +140,16 @@ export class GameScene {
     return this.machines.filter(m => m.isBroken()).length;
   }
 
+  // FIX #3: expose total fixed count if needed, or remove unused variable.
+  // We remove `machinesFixed` entirely since it's never used.
+  // If parent needs this, they can track via onScoreUpdate or add a getter.
+  // For now, variable is deleted.
+
   stop(): void {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.isRunning = false;
   }
 }

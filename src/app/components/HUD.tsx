@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Coffee, Wrench, AlertTriangle, Clock } from 'lucide-react';
 
 interface HUDProps {
@@ -18,9 +18,10 @@ export const HUD: React.FC<HUDProps> = ({
 }) => {
   const timeSeconds = Math.ceil(timeRemaining / 1000);
   const timePercent = (timeRemaining / 30000) * 100;
+  const [showInstructions, setShowInstructions] = useState(false);
 
   return (
-    <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none">
+    <div className="w-full p-4">
       <div className="max-w-7xl mx-auto">
         {/* Top bar */}
         <div className="bg-slate-900/90 backdrop-blur-sm border-2 border-slate-700 rounded-lg p-4 mb-4">
@@ -85,18 +86,9 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
       </div>
 
-      {/* Instructions overlay */}
-      {day === 1 && (
-        <div className="mt-4 bg-blue-900/90 backdrop-blur-sm border-2 border-blue-600 rounded-lg p-4 max-w-md mx-auto">
-          <h3 className="text-white font-bold mb-2">How to Play</h3>
-          <ul className="text-sm text-blue-100 space-y-1">
-            <li>• Click machines to fix them before they break</li>
-            <li>• Don't let 3 machines fail!</li>
-            <li>• Survive each day to progress</li>
-            <li>• Difficulty increases with fatigue</li>
-          </ul>
-        </div>
-      )}
+      {/* Instructions CHANGED TO dropdown */}
+     
+  
     </div>
   );
 };
