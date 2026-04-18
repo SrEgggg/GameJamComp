@@ -1,7 +1,13 @@
+
+
+import { CoinShop } from '../components/Coinshop'
 import React, { useEffect, useRef, useState } from 'react';
 import { GameScene } from '../game/scenes/GameScene';
 import { useGame } from '../context/GameContext';
 import { HUD } from '../components/HUD';
+import { MathQuiz } from '../components/MathQuiz';
+import { TypingGuide } from '../components/TypingGuide';
+
 
 export const Gameplay: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,7 +16,15 @@ export const Gameplay: React.FC = () => {
   const [brokenMachines, setBrokenMachines] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
-  const { gameState, updateScore, endGame, nextDay, reduceSleepDeprivation, increaseSleepDeprivation } = useGame(); // 👈 added increaseSleepDeprivation
+  const {
+    gameState,
+    updateScore,
+    endGame,
+    nextDay,
+    reduceSleepDeprivation,
+    increaseSleepDeprivation,
+    addCoin,
+  } = useGame();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,36 +76,42 @@ export const Gameplay: React.FC = () => {
     const y = (e.clientY - rect.top) * scaleY;
 
     scene.handleClick(x, y);
-    increaseSleepDeprivation(2); // 👈 every click adds 2 fatigue
+
+    // 👇 fatigue reduced 30% per efficiency level
+    const baseFatigue = 2;
+    const reducedFatigue = baseFatigue * Math.pow(0.7, gameState.efficiencyLevel);
+    increaseSleepDeprivation(Math.max(0.1, reducedFatigue));
   };
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4 relative">
 
-      {/* Instructions dropdown — top-left corner */}
-      {gameState.day === 1 && (
-        <div className="absolute top-58 left-25 w-56 z-10">
-          <button
-            className="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-1.5 px-3 rounded-lg border-2 border-blue-500 transition-all duration-200 text-sm"
-            onClick={() => setShowInstructions(prev => !prev)}
-          >
-            📋Guide {showInstructions ? '▲' : '▼'}
-          </button>
-          {showInstructions && (
-            <div className="bg-blue-900/95 border-2 border-blue-600 border-t-0 rounded-b-lg p-3">
-              <ul className="text-xs text-blue-100 space-y-1">
-                <li>• Click machines to fix them before they break</li>
-                <li>• Don't let 3 machines fail!</li>
-                <li>• Survive each day to progress</li>
-                <li>• Difficulty increases with fatigue</li>
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Sleep button — top-right corner */}
-      <div className="absolute top-58 right-50 z-10">
+// Inside Gameplay.tsx, replace the instructions dropdown content:
+
+{/* Instructions dropdown — top-left */}
+{gameState.day === 1 && (
+  <div className="absolute top-100 left-2 z-10">
+    <button
+    className="w-52 bg-blue-500 hover:bg-blue-400 text-white font-bold py-1.5 px-3 rounded-lg border-2 
+      border-blue-400 transition-all duration-200 text-sm mb-1"
+      onClick={() => setShowInstructions(prev => !prev)}
+    >
+      📋 Game Guide {showInstructions ? '▲' : '▼'}
+    </button>
+    {showInstructions && (
+  <div className="bg-blue-500/95 border-2 border-blue-400 border-t-0 rounded-b-lg p-3 w-48">  {/* 👈 w-48 or even w-40 */}
+    <TypingGuide
+      text="Hey! Click machines to fix them before they break. Don't let 3 machines fail! Survive each day to progress. Difficulty increases with fatigue. Good luck!"
+      speed={25}
+    />
+  </div>
+)}
+  </div>
+)}
+
+      {/* Sleep button — top-right */}
+      <div className="absolute top-75 left-15 z-10">
         <button
           onClick={() => setIsSleeping(prev => !prev)}
           className={`px-4 py-1.5 rounded-lg font-bold border-2 transition-all duration-200 text-sm ${
@@ -110,34 +130,46 @@ export const Gameplay: React.FC = () => {
         sleepDeprivation={gameState.sleepDeprivation}
         timeRemaining={timeRemaining}
         brokenMachines={brokenMachines}
+        coins={gameState.coins}
       />
 
-      <div className="relative mt-4">
-        <canvas
-          ref={canvasRef}
-          onClick={handleCanvasClick}
-          className="border-4 border-slate-700 rounded-lg cursor-pointer shadow-2xl"
-          style={{
-            maxWidth: '100%',
-            height: 'auto',
-            imageRendering: 'crisp-edges',
-            filter: gameState.sleepDeprivation > 50 ? `blur(${(gameState.sleepDeprivation - 50) * 0.02}px)` : 'none',
-          }}
-        />
+      {/* Canvas + right side panel */}
+      <div className="flex gap-4 mt-4 items-start">
+        <div className="relative">
+          <canvas
+            ref={canvasRef}
+            onClick={handleCanvasClick}
+            className="border-4 border-slate-700 rounded-lg cursor-pointer shadow-2xl"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              imageRendering: 'crisp-edges',
+              filter: gameState.sleepDeprivation > 50
+                ? `blur(${(gameState.sleepDeprivation - 50) * 0.02}px)`
+                : 'none',
+            }}
+          />
 
-        {/* Blackout overlay while sleeping */}
-        {isSleeping && (
-          <div className="absolute inset-0 bg-black/90 rounded-lg flex items-center justify-center">
-            <div className="text-white text-4xl animate-pulse">😴 Sleeping...</div>
-          </div>
-        )}
+          {/* Blackout overlay while sleeping */}
+          {isSleeping && (
+            <div className="absolute inset-0 bg-black/90 rounded-lg flex items-center justify-center">
+              <div className="text-white text-4xl animate-pulse">😴 Sleeping...</div>
+            </div>
+          )}
 
-        {/* Screen shake effect */}
-        {gameState.sleepDeprivation > 70 && (
-          <div className="absolute inset-0 pointer-events-none animate-pulse">
-            <div className="absolute inset-0 bg-red-500/5 rounded-lg" />
-          </div>
-        )}
+          {/* Screen shake effect */}
+          {gameState.sleepDeprivation > 70 && (
+            <div className="absolute inset-0 pointer-events-none animate-pulse">
+              <div className="absolute inset-0 bg-red-500/5 rounded-lg" />
+            </div>
+          )}
+        </div>
+
+        {/* Right panel — Math Quiz + Coin Shop stacked */}
+        <div className="flex flex-col gap-4">
+          <MathQuiz day={gameState.day} onCorrect={addCoin} />
+          <CoinShop /> {/* 👈 added */}
+        </div>
       </div>
 
       {/* Day transition overlay */}
