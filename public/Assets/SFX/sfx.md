@@ -1,8 +1,8 @@
 # Put SFX Here
 
 
--click
--gameover
--sleep
--shop
--start
+- click
+- gameover
+- sleep
+- shop
+- start
