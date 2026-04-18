@@ -1,5 +1,5 @@
-import React from 'react';
-import { Coffee, Wrench, AlertTriangle, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Coffee, Wrench, AlertTriangle, Clock, Coins } from 'lucide-react';
 
 interface HUDProps {
   day: number;
@@ -7,6 +7,7 @@ interface HUDProps {
   sleepDeprivation: number;
   timeRemaining: number;
   brokenMachines: number;
+  coins: number; // 👈 added
 }
 
 export const HUD: React.FC<HUDProps> = ({
@@ -15,16 +16,18 @@ export const HUD: React.FC<HUDProps> = ({
   sleepDeprivation,
   timeRemaining,
   brokenMachines,
+  coins, // 👈 added
 }) => {
   const timeSeconds = Math.ceil(timeRemaining / 1000);
   const timePercent = (timeRemaining / 30000) * 100;
+  const [showInstructions, setShowInstructions] = useState(false);
 
   return (
-    <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none">
+    <div className="w-full p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Top bar */}
         <div className="bg-slate-900/90 backdrop-blur-sm border-2 border-slate-700 rounded-lg p-4 mb-4">
           <div className="flex justify-between items-center gap-4 flex-wrap">
+
             {/* Day */}
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-400" />
@@ -43,6 +46,15 @@ export const HUD: React.FC<HUDProps> = ({
               </div>
             </div>
 
+            {/* Coins 👈 added */}
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🪙</span>
+              <div>
+                <div className="text-xs text-slate-400">Coins</div>
+                <div className="text-xl font-bold text-yellow-400">{coins}</div>
+              </div>
+            </div>
+
             {/* Failed Machines */}
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -52,7 +64,7 @@ export const HUD: React.FC<HUDProps> = ({
               </div>
             </div>
 
-            {/* Sleep Deprivation */}
+            {/* Fatigue */}
             <div className="flex items-center gap-2">
               <Coffee className="w-5 h-5 text-amber-400" />
               <div className="flex-1 min-w-[120px]">
@@ -65,6 +77,7 @@ export const HUD: React.FC<HUDProps> = ({
                 </div>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -84,19 +97,6 @@ export const HUD: React.FC<HUDProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Instructions overlay */}
-      {day === 1 && (
-        <div className="mt-4 bg-blue-900/90 backdrop-blur-sm border-2 border-blue-600 rounded-lg p-4 max-w-md mx-auto">
-          <h3 className="text-white font-bold mb-2">How to Play</h3>
-          <ul className="text-sm text-blue-100 space-y-1">
-            <li>• Click machines to fix them before they break</li>
-            <li>• Don't let 3 machines fail!</li>
-            <li>• Survive each day to progress</li>
-            <li>• Difficulty increases with fatigue</li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 };
