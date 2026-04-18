@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
-=======
-@import 'tailwindcss' source(none);
-@source '../**/*.{js,ts,jsx,tsx}';
-
-@import 'tw-animate-css';
->>>>>>> eb30028916e28f64c0980fac1a0791b6b792021d
