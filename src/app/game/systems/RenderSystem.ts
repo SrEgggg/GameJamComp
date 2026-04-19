@@ -1,4 +1,6 @@
+import { MachineRender } from './MachineRender';
 import { Machine } from '../entities/Machine';
+
 
 export class RenderSystem {
   private ctx: CanvasRenderingContext2D;
@@ -18,71 +20,16 @@ export class RenderSystem {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
+
   renderMachine(machine: Machine): void {
     const { ctx } = this;
-
-    // Machine body
-    ctx.save();
-
-    // Add shake effect for critical machines
-    if (machine.state === 'critical' || machine.state === 'broken') {
-      const shakeX = (Math.random() - 0.5) * 4;
-      const shakeY = (Math.random() - 0.5) * 4;
-      ctx.translate(shakeX, shakeY);
-    }
-
-    // Machine color based on state
-    let bodyColor = '#4a5568';
-    switch (machine.state) {
-      case 'warning':
-        bodyColor = '#d69e2e';
-        break;
-      case 'critical':
-        bodyColor = '#e53e3e';
-        break;
-      case 'broken':
-        bodyColor = '#2d3748';
-        break;
-    }
-
-    // Draw machine body
-    ctx.fillStyle = bodyColor;
-    ctx.fillRect(machine.x, machine.y, machine.width, machine.height);
-
-    // Draw machine details
-    ctx.strokeStyle = '#2d3748';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(machine.x, machine.y, machine.width, machine.height);
-
-    // Draw control panel
-    ctx.fillStyle = '#1a202c';
-    ctx.fillRect(machine.x + 10, machine.y + 10, machine.width - 20, 30);
-
-    // Draw indicator lights
-    for (let i = 0; i < 3; i++) {
-      const lightX = machine.x + 20 + i * 30;
-      const lightY = machine.y + 20;
-      
-      ctx.beginPath();
-      ctx.arc(lightX, lightY, 6, 0, Math.PI * 2);
-      
-      if (machine.state === 'broken') {
-        ctx.fillStyle = '#4a5568';
-      } else if (machine.state === 'critical') {
-        ctx.fillStyle = Math.random() > 0.5 ? '#fc8181' : '#e53e3e';
-      } else if (machine.state === 'warning') {
-        ctx.fillStyle = '#f6ad55';
-      } else {
-        ctx.fillStyle = '#48bb78';
-      }
-      ctx.fill();
-    }
-
+    MachineRender.render(ctx, machine);
+     
     // Draw health bar
     const healthBarWidth = machine.width - 20;
-    const healthBarHeight = 12;
+    const healthBarHeight = 10;
     const healthBarX = machine.x + 10;
-    const healthBarY = machine.y + machine.height - 25;
+    const healthBarY = machine.y + machine.height + 10;
 
     // Health bar background
     ctx.fillStyle = '#2d3748';
@@ -104,11 +51,11 @@ export class RenderSystem {
     ctx.lineWidth = 2;
     ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
 
-    // Machine type indicator
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`M${machine.type + 1}`, machine.x + machine.width / 2, machine.y + 70);
+    // // Machine type indicator
+    // ctx.fillStyle = '#e2e8f0';
+    // ctx.font = 'bold 16px monospace';
+    // ctx.textAlign = 'center';
+    // ctx.fillText(`M${machine.type + 1}`, machine.x + machine.width / 2, machine.y + 70);
 
     // Status text
     if (machine.state === 'broken') {
@@ -161,5 +108,5 @@ export class RenderSystem {
       this.ctx.fillStyle = gradient;
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
-  }
+  } 
 }

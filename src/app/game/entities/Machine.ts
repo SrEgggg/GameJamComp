@@ -1,4 +1,7 @@
 export type MachineState = 'idle' | 'warning' | 'critical' | 'broken';
+export type MachineVariant = 'MA' | 'MB' | 'MC';
+
+const MACHINE_VARIANTS: MachineVariant[] = ['MA', 'MB', 'MC'];
 
 export class Machine {
   id: number;
@@ -11,18 +14,20 @@ export class Machine {
   degradationRate: number;
   lastFixTime: number;
   type: number; // 0-2 for different machine types
+  variant: MachineVariant;
 
   constructor(id: number, x: number, y: number, degradationRate: number) {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.width = 120;
-    this.height = 140;
+    this.width = 100;
+    this.height = 100;
     this.health = 100;
     this.state = 'idle';
     this.degradationRate = degradationRate;
     this.lastFixTime = Date.now();
-    this.type = Math.floor(Math.random() * 3);
+    this.variant = MACHINE_VARIANTS[Math.floor(Math.random() * MACHINE_VARIANTS.length)];
+    this.type = MACHINE_VARIANTS.indexOf(this.variant);
   }
 
   update(deltaTime: number): void {
@@ -41,6 +46,7 @@ export class Machine {
       this.state = 'idle';
     }
   }
+  
 
   fix(): number {
     if (this.state === 'broken') {
@@ -53,6 +59,7 @@ export class Machine {
     this.lastFixTime = Date.now();
     return pointsEarned;
   }
+
 
   isPointInside(px: number, py: number): boolean {
     return px >= this.x && px <= this.x + this.width &&
