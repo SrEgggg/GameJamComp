@@ -24,7 +24,7 @@ export class RenderSystem {
   renderMachine(machine: Machine): void {
     const { ctx } = this;
     MachineRender.render(ctx, machine);
-     
+    
     // Draw health bar
     const healthBarWidth = machine.width - 20;
     const healthBarHeight = 10;
