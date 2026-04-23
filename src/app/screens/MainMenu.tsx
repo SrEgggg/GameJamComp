@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Trophy } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useGame } from '../context/GameContext';
@@ -6,6 +6,7 @@ import { useGame } from '../context/GameContext';
 export const MainMenu: React.FC = () => {
   const { gameState, startGame } = useGame();
   const [currentTime, setCurrentTime] = useState('03:17 AM');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const updateTime = () => {
@@ -21,6 +22,27 @@ export const MainMenu: React.FC = () => {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Background music effect
+  useEffect(() => {
+    audioRef.current = new Audio('/Assets/Music/Midnight_at_the_Relay.mp3');
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.3;
+
+    const playPromise = audioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Auto-play was prevented, will try on user interaction
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
   }, []);
 
   return (
