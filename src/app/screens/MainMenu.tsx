@@ -1,12 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Trophy } from 'lucide-react';
+import { Play, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useGame } from '../context/GameContext';
 
 export const MainMenu: React.FC = () => {
   const { gameState, startGame } = useGame();
   const [currentTime, setCurrentTime] = useState('03:17 AM');
+  const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioInitialized = useRef(false);
+
+  const initAudio = () => {
+    if (audioInitialized.current) return;
+    audioInitialized.current = true;
+
+    audioRef.current = new Audio('/Assets/Music/Midnight_at_the_Relay.mp3');
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.3;
+    audioRef.current.play().catch((err) => {
+      console.warn('Audio playback failed:', err);
+    });
+  };
+
+  const toggleMute = () => {
+    if (!audioInitialized.current) {
+      initAudio();
+      return;
+    }
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   useEffect(() => {
     const updateTime = () => {
@@ -24,20 +49,18 @@ export const MainMenu: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Background music effect
+  // Background music effect - initialize on user interaction
   useEffect(() => {
-    audioRef.current = new Audio('/Assets/Music/Midnight_at_the_Relay.mp3');
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
+    const handleUserInteraction = () => {
+      initAudio();
+    };
 
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Auto-play was prevented, will try on user interaction
-      });
-    }
+    window.addEventListener('click', handleUserInteraction, { once: true });
+    window.addEventListener('keydown', handleUserInteraction, { once: true });
 
     return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -201,9 +224,17 @@ export const MainMenu: React.FC = () => {
         </div>
 
         {/* Bottom controls hint */}
-        <div className="mt-6 text-center text-slate-400 text-sm"
+        <div className="mt-6 flex items-center justify-between text-slate-400 text-sm"
              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-          <p>Click on machines to fix them • Don't let them break!</p>
+          <p className="flex-1 text-center">Click on machines to fix them • Don't let them break!</p>
+          <button
+            onClick={toggleMute}
+            className="ml-4 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors flex items-center gap-2 text-slate-300"
+            style={{ border: '1px solid #4a4a4a' }}
+          >
+            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            <span className="text-xs">{isMuted ? 'Unmute' : 'Mute'} Music</span>
+          </button>
         </div>
       </div>
     </div>
